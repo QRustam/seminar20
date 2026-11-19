@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interaktiv Seminar Kartochkalari</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+  <!-- Yuqori navigatsiya paneli -->
+  <header class="w-full border-b border-white/10 bg-slate-900/90 backdrop-blur px-4 py-3">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300">
+          <i class="fa-solid fa-layer-group text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-sm sm:text-base font-bold text-white">Seminar Kartochkalari</h1>
+          <div class="flex items-center gap-2 text-xs text-slate-400">
+            <span>Xona: <strong id="currentRoomBadge" class="text-teal-300">seminar2026</strong></span>
+            <span>•</span>
+            <span id="syncStatusBadge" class="font-semibold text-amber-300">Tayyor</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button
+          id="homeBtn"
+          type="button"
+          onclick="goHome()"
+          class="hidden px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/10 text-xs font-semibold text-slate-200 transition"
+        >
+          <i class="fa-solid fa-arrow-left mr-1"></i> Rol tanlash
+        </button>
+
+        <button
+          type="button"
+          onclick="toggleSound()"
+          title="Ovozni yoqish / o'chirish"
+          class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/10 flex items-center justify-center transition"
+        >
+          <i id="soundIcon" class="fa-solid fa-volume-high text-sm text-teal-400"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Asosiy kontent -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6">
+
+    <!-- 1) Rol tanlash oynasi -->
+    <section id="roleSelectionView" class="max-w-xl mx-auto mt-4 sm:mt-10 bg-slate-900 border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+      <div class="space-y-2 text-center">
+        <span class="inline-block px-3 py-1 rounded-full bg-teal-500/15 text-teal-300 text-xs font-semibold">
+          Jonli ovoz berish va kartochkalar
+        </span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Seminarga kirish</h2>
+        <p class="text-sm text-slate-400">
+          Spiker yoki ishtirokchi rolini tanlang. Bir xil xona kodini kiriting.
+        </p>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label for="roomCodeInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+            Xona kodi
+          </label>
+          <input
+            id="roomCodeInput"
+            type="text"
+            value="seminar2026"
+            placeholder="Masalan: seminar2026"
+            class="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-white/15 text-white placeholder-slate-500 focus:outline-none focus:border-teal-400"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          <button
+            type="button"
+            onclick="enterAsModerator()"
+            class="p-5 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-left transition shadow-lg flex flex-col justify-between gap-3"
+          >
+            <i class="fa-solid fa-chalkboard-user text-2xl"></i>
+            <div>
+              <div class="text-base font-extrabold">Men Spikerman</div>
+              <div class="text-xs text-teal-100/90 font-normal mt-0.5">Savol yuborish va natijalarni ko‘rish</div>
+            </div>
+          </button>
+
+          <div class="p-4 rounded-2xl bg-slate-800/80 border border-white/10 space-y-3">
+            <input
+              id="participantNameInput"
+              type="text"
+              placeholder="Ismingiz (masalan: Nilufar)"
+              class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-white/15 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+            />
+            <button
+              type="button"
+              onclick="enterAsParticipant()"
+              class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-sm transition flex items-center justify-center gap-2"
+            >
+              <i class="fa-solid fa-user-check"></i> Ishtirokchi sifatida kirish
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2) Spiker (Moderator) paneli -->
+    <section id="moderatorView" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Savol yuborish va tayyor iboralar -->
+        <div class="lg:col-span-7 bg-slate-900 border border-white/10 rounded-3xl p-5 sm:p-6 space-y-5">
+          <div class="rounded-2xl bg-slate-950 border border-white/10 p-3 flex flex-wrap items-center gap-2">
+            <span class="text-xs text-slate-400">Ishtirokchilar havolasi:</span>
+            <code id="participantLinkText" class="text-xs text-teal-300 break-all flex-1 min-w-[12rem]"></code>
+            <button type="button" onclick="copyParticipantLink()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-white/10 text-xs font-semibold text-slate-200">Nusxalash</button>
+          </div>
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="text-lg font-extrabold text-white">Savol yoki ibora yuborish</h2>
+            <button
+              type="button"
+              onclick="openProjectorMode()"
+              class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition flex items-center gap-2"
+            >
+              <i class="fa-solid fa-expand"></i> Katta ekran (Proyektor)
+            </button>
+          </div>
+
+          <textarea
+            id="questionInput"
+            rows="3"
+            placeholder="Ishtirokchilarga ko‘rinadigan savol yoki muhokama iborasini yozing..."
+            class="w-full p-4 rounded-2xl bg-slate-950 border border-white/15 text-white placeholder-slate-500 focus:outline-none focus:border-teal-400"
+          ></textarea>
+
+          <div class="flex flex-wrap gap-2.5">
+            <button
+              type="button"
+              onclick="publishQuestion()"
+              class="px-5 py-3 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-sm transition flex items-center gap-2"
+            >
+              <i class="fa-solid fa-paper-plane"></i> Ekranga chiqarish
+            </button>
+
+            <button
+              type="button"
+              onclick="saveToPresetList()"
+              class="px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-white/10 text-slate-200 font-semibold text-sm transition flex items-center gap-2"
+            >
+              <i class="fa-solid fa-bookmark"></i> Ro‘yxatga saqlash
+            </button>
+
+            <button
+              type="button"
+              onclick="resetVotesOnly()"
+              class="px-4 py-3 rounded-2xl bg-slate-800 hover:bg-rose-950/60 border border-white/10 text-rose-300 font-semibold text-sm transition flex items-center gap-2"
+            >
+              <i class="fa-solid fa-rotate-left"></i> Ovozni nollash
+            </button>
+
+            <button
+              type="button"
+              onclick="openParticipantTestWindow()"
+              class="px-4 py-3 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 font-semibold text-sm transition flex items-center gap-2"
+              title="Ishtirokchi ko'rinishini alohida oynada ochib tekshirish"
+            >
+              <i class="fa-solid fa-up-right-from-square"></i> Ishtirokchi oynasi
+            </button>
+          </div>
+
+          <!-- Tayyor iboralar banki -->
+          <div class="pt-3 border-t border-white/10 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Tayyor savollar va iboralar (bosib chiqaring)
+              </span>
+              <button
+                type="button"
+                onclick="resetDefaultPresets()"
+                class="text-xs text-teal-400 hover:underline"
+              >
+                Standart ro‘yxat
+              </button>
+            </div>
+            <div id="presetListContainer" class="flex flex-wrap gap-2"></div>
+          </div>
+        </div>
+
+        <!-- Jonli natijalar -->
+        <div class="lg:col-span-5 bg-slate-900 border border-white/10 rounded-3xl p-5 sm:p-6 space-y-5">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-extrabold text-white">Jonli natijalar</h2>
+            <span class="px-3 py-1 rounded-full bg-slate-800 text-xs font-bold text-teal-300">
+              Jami ovoz: <span id="totalVotesCount">0</span>
+            </span>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-950/80 border border-white/10">
+            <div class="text-[11px] uppercase tracking-wider text-slate-400 mb-1">Faol savol</div>
+            <p id="activeQuestionDisplay" class="text-sm font-semibold text-white">
+              Hali savol yuborilmadi
+            </p>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Yashil -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-bold">
+                <span class="text-emerald-400">Yashil — Qo‘shilaman / To‘g‘ri</span>
+                <span id="greenStatText" class="text-slate-300">0 kishi (0%)</span>
+              </div>
+              <div class="w-full h-3 rounded-full bg-slate-800 overflow-hidden">
+                <div id="greenBar" class="h-full bg-emerald-500 transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Qizil -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-bold">
+                <span class="text-rose-400">Qizil — Qo‘shilmayman / Xato</span>
+                <span id="redStatText" class="text-slate-300">0 kishi (0%)</span>
+              </div>
+              <div class="w-full h-3 rounded-full bg-slate-800 overflow-hidden">
+                <div id="redBar" class="h-full bg-rose-500 transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Sariq -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-bold">
+                <span class="text-amber-300">Sariq — Fikrim bor / Muhokama</span>
+                <span id="yellowStatText" class="text-slate-300">0 kishi (0%)</span>
+              </div>
+              <div class="w-full h-3 rounded-full bg-slate-800 overflow-hidden">
+                <div id="yellowBar" class="h-full bg-amber-400 transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ovoz bergan ishtirokchilar -->
+          <div class="pt-3 border-t border-white/10 space-y-2">
+            <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Ishtirokchilar javobi</div>
+            <div id="votersList" class="flex flex-wrap gap-2">
+              <span class="text-xs text-slate-500 italic">Hozircha hech kim ovoz bermadi...</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 3) Ishtirokchi paneli -->
+    <section id="participantView" class="hidden max-w-2xl mx-auto space-y-6">
+      <div class="bg-slate-900 border border-white/10 rounded-3xl p-6 space-y-5">
+        <div class="flex items-center justify-between gap-2">
+          <div class="text-xs text-slate-400">
+            Ishtirokchi: <strong id="participantNameDisplay" class="text-white">Ishtirokchi</strong>
+          </div>
+          <button
+            type="button"
+            onclick="requestCurrentQuestionManually()"
+            class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-teal-300 border border-white/10 transition"
+          >
+            <i class="fa-solid fa-rotate mr-1"></i> Savolni yangilash
+          </button>
+        </div>
+
+        <div id="waitingQuestionBox" class="p-6 rounded-2xl bg-slate-950 border border-dashed border-white/15 text-center space-y-2">
+          <i class="fa-solid fa-hourglass-half text-2xl text-amber-400"></i>
+          <p class="text-sm font-semibold text-slate-200">Spiker savol berishini kuting...</p>
+          <p class="text-xs text-slate-500">Savol yuborilishi bilan shu yerda ko‘rinadi</p>
+        </div>
+
+        <div id="participantQuestionBox" class="hidden p-5 rounded-2xl bg-slate-950 border border-teal-500/30 space-y-2">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-teal-400">Joriy savol</span>
+          <p id="participantQuestionText" class="text-lg sm:text-xl font-bold text-white leading-snug"></p>
+        </div>
+
+        <!-- Rangli kartochka tugmalari -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+          <button
+            type="button"
+            onclick="submitVote('green')"
+            class="p-5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-extrabold transition shadow-lg flex flex-col items-center justify-center gap-2 min-h-[120px]"
+          >
+            <i class="fa-solid fa-check text-3xl"></i>
+            <span class="text-sm text-center">Qo‘shilaman / To‘g‘ri</span>
+          </button>
+
+          <button
+            type="button"
+            onclick="submitVote('red')"
+            class="p-5 rounded-2xl bg-rose-600 hover:bg-rose-500 active:scale-[0.99] text-white font-extrabold transition shadow-lg flex flex-col items-center justify-center gap-2 min-h-[120px]"
+          >
+            <i class="fa-solid fa-xmark text-3xl"></i>
+            <span class="text-sm text-center">Qo‘shilmayman / Xato</span>
+          </button>
+
+          <button
+            type="button"
+            onclick="submitVote('yellow')"
+            class="p-5 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-[0.99] text-slate-950 font-extrabold transition shadow-lg flex flex-col items-center justify-center gap-2 min-h-[120px]"
+          >
+            <i class="fa-solid fa-hand text-3xl"></i>
+            <span class="text-sm text-center">Fikrim bor / Muhokama</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- To'liq ekranli rangli kartochka (Ishtirokchi bosganda) -->
+  <div
+    id="activeCardView"
+    onclick="hideFullCard()"
+    class="hidden fixed inset-0 z-30 flex flex-col items-center justify-center p-6 text-center cursor-pointer"
+  >
+    <i id="activeIcon" class="fa-solid fa-check text-6xl text-white mb-4"></i>
+    <div id="activeTitle" class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight"></div>
+    <p id="activeQuestionReminder" class="mt-4 max-w-xl text-base sm:text-lg text-white/90 font-medium"></p>
+    <span class="mt-8 px-4 py-2 rounded-full bg-black/25 text-white text-xs font-semibold">
+      Qaytish uchun ekranga bosing
+    </span>
+  </div>
+
+  <!-- Katta proyektor rejimi (Spiker uchun) -->
+  <div
+    id="projectorView"
+    class="hidden fixed inset-0 z-40 bg-slate-950 text-white flex flex-col justify-between p-6 sm:p-10"
+  >
+    <div class="flex items-center justify-between text-xs sm:text-sm text-slate-400">
+      <div>Xona: <strong id="projRoomCode" class="text-teal-300">seminar2026</strong></div>
+      <div>Jami ovoz: <strong id="projTotalVotes" class="text-white">0</strong></div>
+      <button
+        type="button"
+        onclick="closeProjectorMode()"
+        class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold"
+      >
+        <i class="fa-solid fa-compress mr-1"></i> Yopish
+      </button>
+    </div>
+
+    <div class="my-auto text-center max-w-5xl mx-auto px-2">
+      <p id="projQuestionText" class="text-3xl sm:text-5xl md:text-6xl font-extrabold leading-tight text-white">
+        Hali savol tanlanmadi
+      </p>
+    </div>
+
+    <div class="space-y-5">
+      <div class="grid grid-cols-3 gap-4 max-w-3xl mx-auto text-center">
+        <div class="p-3 rounded-2xl bg-emerald-950/70 border border-emerald-500/30">
+          <div class="text-xs text-emerald-300 font-bold">Yashil</div>
+          <div id="projGreenCount" class="text-lg sm:text-2xl font-extrabold text-white">0 (0%)</div>
+        </div>
+        <div class="p-3 rounded-2xl bg-rose-950/70 border border-rose-500/30">
+          <div class="text-xs text-rose-300 font-bold">Qizil</div>
+          <div id="projRedCount" class="text-lg sm:text-2xl font-extrabold text-white">0 (0%)</div>
+        </div>
+        <div class="p-3 rounded-2xl bg-amber-950/70 border border-amber-400/30">
+          <div class="text-xs text-amber-200 font-bold">Sariq</div>
+          <div id="projYellowCount" class="text-lg sm:text-2xl font-extrabold text-white">0 (0%)</div>
+        </div>
+      </div>
+
+      <div class="flex justify-center">
+        <button
+          type="button"
+          onclick="nextPresetInProjector()"
+          class="px-6 py-3.5 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-sm sm:text-base transition flex items-center gap-2"
+        >
+          Keyingi savol <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Asosiy holat o'zgaruvchilari
+    let currentRoom = 'seminar2026';
+    let userRole = '';
+    const userId = (() => {
+      try {
+        let u = sessionStorage.getItem('uz_seminar_uid');
+        if (!u) { u = 'user_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); sessionStorage.setItem('uz_seminar_uid', u); }
+        return u;
+      } catch (e) { return 'user_' + Math.random().toString(36).slice(2, 10); }
+    })();
+    const NTFY = '';
+    let sseOpen = false;
+    let lastNtfyId = '';
+    let storageHandler = null;
+    let audioCtx = null;
+    const topicFor = (room) => 'uzsem_' + (String(room).toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 40) || 'default');
+    let userName = 'Ishtirokchi';
+    let currentQuestionId = '';
+    let currentQuestionText = '';
+    let votesData = {};
+    let soundEnabled = true;
+    let currentPresetIdx = 0;
+
+    let liveChannel = null;
+    let sseSource = null;
+    let ntfyPollInterval = null;
+    let roomPollInterval = null;
+    let lastNtfyPollTime = Math.floor(Date.now() / 1000) - 120;
+    let processedMessageIds = new Set();
+
+    const defaultPresets = [
+      "Guruhdagi bolalarning xulq-atvoridagi kichik o‘zgarishlarga birinchi bo‘lib tarbiyachi e’tibor berishi shartmi?",
+      "Kiberbullingga uchragan bolaga «Telefonni o‘chirib qo‘y» deyish to‘g‘ri yechimmi?",
+      "Sinf chatidagi haqoratomuz xabarlarga darhol aralashish kerakmi yoki avval kuzatish lozimmi?",
+      "Bulling qilgan bolaning ota-onasi aybni inkor etsa, qanday diplomatik yo‘l tutish kerak?",
+      "Guvoh bo‘lib turgan bolalarni faol himoyachiga aylantirish mumkinmi?"
+    ];
+
+    const cardConfigs = {
+      green: {
+        title: "QO‘SHILAMAN / TO‘G‘RI",
+        bgClass: "bg-emerald-600",
+        iconClass: "fa-solid fa-check",
+        badgeClass: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
+        labelShort: "Yashil"
+      },
+      red: {
+        title: "QO‘SHILMAYMAN / XATO",
+        bgClass: "bg-rose-600",
+        iconClass: "fa-solid fa-xmark",
+        badgeClass: "bg-rose-500/20 text-rose-300 border-rose-500/40",
+        labelShort: "Qizil"
+      },
+      yellow: {
+        title: "FIKRIM BOR / MUHOKAMA",
+        bgClass: "bg-amber-500",
+        iconClass: "fa-solid fa-hand",
+        badgeClass: "bg-amber-400/20 text-amber-200 border-amber-400/40",
+        labelShort: "Sariq"
+      }
+    };
+
+    function updateSyncBadge(text, colorClass = 'text-emerald-400') {
+      const badge = document.getElementById('syncStatusBadge');
+      if (!badge) return;
+      badge.textContent = text;
+      badge.className = `font-semibold ${colorClass}`;
+    }
+
+    function openParticipantTestWindow() {
+      const roomCode = (document.getElementById('roomCodeInput')?.value || currentRoom || 'seminar2026').trim();
+      const url = new URL(window.location.href);
+      url.searchParams.set('room', roomCode);
+      url.searchParams.set('role', 'participant');
+      window.open(url.toString(), '_blank', 'noopener,noreferrer');
+    }
+
+    function playTone(freq = 520) {
+      if (!soundEnabled) return;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const ctx = audioCtx;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.19);
+      } catch (e) {}
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      const icon = document.getElementById('soundIcon');
+      if (icon) {
+        icon.className = soundEnabled
+          ? 'fa-solid fa-volume-high text-sm text-teal-400'
+          : 'fa-solid fa-volume-xmark text-sm text-slate-400';
+      }
+    }
+
+    function enterAsModerator() {
+      userRole = 'moderator';
+      connectToRoom();
+      renderPresetList();
+      document.getElementById('roleSelectionView').classList.add('hidden');
+      document.getElementById('participantView').classList.add('hidden');
+      document.getElementById('moderatorView').classList.remove('hidden');
+      document.getElementById('homeBtn').classList.remove('hidden');
+      playTone(600);
+    }
+
+    function enterAsParticipant() {
+      const nameInput = document.getElementById('participantNameInput');
+      const entered = nameInput ? nameInput.value.trim() : '';
+      userName = entered || 'Ishtirokchi';
+      userRole = 'participant';
+
+      document.getElementById('participantNameDisplay').textContent = userName;
+      document.getElementById('roleSelectionView').classList.add('hidden');
+      document.getElementById('moderatorView').classList.add('hidden');
+      document.getElementById('participantView').classList.remove('hidden');
+      document.getElementById('homeBtn').classList.remove('hidden');
+
+      connectToRoom();
+      requestCurrentQuestionManually();
+      playTone(540);
+    }
+
+    function goHome() {
+      userRole = '';
+      hideFullCard();
+      closeProjectorMode();
+      document.getElementById('moderatorView').classList.add('hidden');
+      document.getElementById('participantView').classList.add('hidden');
+      document.getElementById('homeBtn').classList.add('hidden');
+      document.getElementById('roleSelectionView').classList.remove('hidden');
+    }
+
+    function requestCurrentQuestionManually() {
+      // Joriy savol ntfy tarixidan avtomatik olinadi; bu yerda faqat qo'lda tekshirib qo'yamiz
+      pollNtfy();
+    }
+
+    function participantUrl() {
+      const url = new URL(window.location.href);
+      url.search = '';
+      url.hash = '';
+      url.searchParams.set('room', currentRoom);
+      url.searchParams.set('role', 'participant');
+      return url.toString();
+    }
+
+    function copyParticipantLink() {
+      const link = participantUrl();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(() => updateSyncBadge('Havola nusxalandi', 'text-emerald-400')).catch(() => window.prompt('Havolani nusxalang:', link));
+      } else {
+        window.prompt('Havolani nusxalang:', link);
+      }
+    }
+
+    function getSavedPresets() {
+      const roomKey = `uz_seminar_presets_${currentRoom || 'default'}`;
+      try {
+        const raw = localStorage.getItem(roomKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {}
+      return [...defaultPresets];
+    }
+
+    function setSavedPresets(list) {
+      const roomKey = `uz_seminar_presets_${currentRoom || 'default'}`;
+      try {
+        localStorage.setItem(roomKey, JSON.stringify(list));
+      } catch (e) {}
+    }
+
+    function renderPresetList() {
+      const container = document.getElementById('presetListContainer');
+      if (!container) return;
+      const presets = getSavedPresets();
+      container.innerHTML = '';
+
+      presets.forEach((text, idx) => {
+        const chip = document.createElement('div');
+        chip.className = 'inline-flex items-center gap-1.5 bg-slate-950 hover:bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 transition max-w-full';
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'text-left font-medium truncate max-w-[240px] sm:max-w-xs';
+        btn.title = text;
+        btn.textContent = `${idx + 1}. ${text}`;
+        btn.onclick = () => {
+          currentPresetIdx = idx;
+          document.getElementById('questionInput').value = text;
+          publishQuestion();
+        };
+
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'text-slate-500 hover:text-rose-400 ml-1';
+        delBtn.title = "Ro'yxatdan o'chirish";
+        delBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+        delBtn.onclick = (ev) => {
+          ev.stopPropagation();
+          const updated = presets.filter((_, i) => i !== idx);
+          setSavedPresets(updated.length ? updated : [...defaultPresets]);
+          renderPresetList();
+        };
+
+        chip.appendChild(btn);
+        chip.appendChild(delBtn);
+        container.appendChild(chip);
+      });
+    }
+
+    function saveToPresetList() {
+      const input = document.getElementById('questionInput');
+      const val = input.value.trim();
+      if (!val) return;
+      const list = getSavedPresets();
+      if (!list.includes(val)) {
+        list.push(val);
+        setSavedPresets(list);
+        renderPresetList();
+      }
+      playTone(720);
+    }
+
+    function resetDefaultPresets() {
+      setSavedPresets([...defaultPresets]);
+      currentPresetIdx = 0;
+      renderPresetList();
+    }
+
+    function applyIncomingQuestion(payload) {
+      if (!payload || !payload.text) return;
+      const cleanText = String(payload.text).trim();
+      if (!cleanText) return;
+
+      const isNewQuestion = payload.id && payload.id !== currentQuestionId;
+      if (isNewQuestion) {
+        currentQuestionId = payload.id;
+        votesData = {};
+        renderResults();
+        hideFullCard();
+      } else if (!currentQuestionId) {
+        currentQuestionId = payload.id || ('q_' + Date.now());
+      }
+
+      currentQuestionText = cleanText;
+
+      const activeQEl = document.getElementById('activeQuestionDisplay');
+      if (activeQEl) activeQEl.textContent = currentQuestionText;
+
+      const projQEl = document.getElementById('projQuestionText');
+      if (projQEl) projQEl.textContent = currentQuestionText;
+
+      const waitingBox = document.getElementById('waitingQuestionBox');
+      const liveQBox = document.getElementById('participantQuestionBox');
+      const liveQText = document.getElementById('participantQuestionText');
+
+      if (waitingBox) waitingBox.classList.add('hidden');
+      if (liveQBox) liveQBox.classList.remove('hidden');
+      if (liveQText) liveQText.textContent = currentQuestionText;
+
+      const activeReminder = document.getElementById('activeQuestionReminder');
+      if (activeReminder) activeReminder.textContent = currentQuestionText;
+
+      if (userRole === 'participant') {
+        playTone(640);
+      }
+    }
+
+    function applyIncomingVote(voteObj, voterId) {
+      if (!voteObj || !voterId) return;
+      if (!cardConfigs[voteObj.color]) return;
+      if (voteObj.qId && currentQuestionId && voteObj.qId !== currentQuestionId) return;
+      const prev = votesData[voterId];
+      const ts = voteObj.ts || Date.now();
+      if (prev && prev.ts > ts) return; // eski ovoz yangisini bosib ketmasin
+      votesData[voterId] = {
+        color: voteObj.color,
+        name: voteObj.name || 'Ishtirokchi',
+        qId: voteObj.qId || currentQuestionId,
+        ts: ts
+      };
+      renderResults();
+    }
+
+    function fetchT(url, opts, ms = 7000) {
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), ms);
+      return fetch(url, Object.assign({}, opts, { signal: ctl.signal })).finally(() => clearTimeout(timer));
+    }
+    const roomQ = () => 'room=' + encodeURIComponent(currentRoom);
+
+    function postToNtfy(body, tries) {
+      fetchT('/api/msg?' + roomQ(), { method: 'POST', headers: { 'Content-Type': 'text/plain; charset=utf-8' }, body: body })
+        .then((r) => {
+          if (r && (r.ok || r.status === 409)) updateSyncBadge('Jonli aloqa faol', 'text-emerald-400');
+          else if (tries > 1) setTimeout(() => postToNtfy(body, tries - 1), 1500);
+          else updateSyncBadge('Yuborishda xato' + (r ? ' (' + r.status + ')' : ''), 'text-rose-400');
+        })
+        .catch(() => {
+          if (tries > 1) setTimeout(() => postToNtfy(body, tries - 1), 1500);
+          else updateSyncBadge('Serverga ulanib bo‘lmadi', 'text-rose-400');
+        });
+    }
+
+    function broadcastRoomMessage(msg) {
+      if (!currentRoom) return;
+      const msgWithId = {
+        ...msg,
+        msgId: msg.msgId || ('m_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)),
+        room: currentRoom
+      };
+      processedMessageIds.add(msgWithId.msgId);
+
+      const serialized = JSON.stringify(msgWithId);
+      const storageKey = `uz_seminar_live_${currentRoom}`;
+
+      try {
+        if (liveChannel) liveChannel.postMessage(serialized);
+      } catch (e) {}
+
+      // Bir xil qurilmadagi boshqa oynalar uchun
+      let updatedState = { question: null, votes: {} };
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (raw) updatedState = JSON.parse(raw) || updatedState;
+        if (msgWithId.type === 'question') {
+          updatedState.question = msgWithId.payload;
+          updatedState.votes = {};
+        } else if (msgWithId.type === 'vote' && msgWithId.voterId) {
+          updatedState.votes = updatedState.votes || {};
+          updatedState.votes[msgWithId.voterId] = msgWithId.payload;
+        } else if (msgWithId.type === 'reset') {
+          updatedState.votes = {};
+          if (msgWithId.question) updatedState.question = msgWithId.question;
+        }
+        localStorage.setItem(storageKey, JSON.stringify(updatedState));
+      } catch (e) {}
+
+      // Boshqa qurilmalar uchun (ntfy.sh)
+      postToNtfy(serialized, 2);
+    }
+
+    function publishQuestion() {
+      const input = document.getElementById('questionInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const payload = {
+        id: 'q_' + Date.now(),
+        text: text,
+        timestamp: Date.now()
+      };
+
+      votesData = {};
+      renderResults();
+      applyIncomingQuestion(payload);
+
+      broadcastRoomMessage({
+        room: currentRoom,
+        type: 'question',
+        payload: payload
+      });
+      playTone(660);
+    }
+
+    function resetVotesOnly() {
+      votesData = {};
+      renderResults();
+      broadcastRoomMessage({
+        room: currentRoom,
+        type: 'reset',
+        question: currentQuestionText ? {
+          id: currentQuestionId,
+          text: currentQuestionText,
+          timestamp: Date.now()
+        } : null
+      });
+      playTone(400);
+    }
+
+    function nextPresetInProjector() {
+      const presets = getSavedPresets();
+      if (!presets.length) return;
+      currentPresetIdx = (currentPresetIdx + 1) % presets.length;
+      const nextText = presets[currentPresetIdx];
+      document.getElementById('questionInput').value = nextText;
+      publishQuestion();
+    }
+
+    function openProjectorMode() {
+      const proj = document.getElementById('projectorView');
+      document.getElementById('projQuestionText').textContent = currentQuestionText || 'Hali savol tanlanmadi';
+      document.getElementById('projRoomCode').textContent = currentRoom || 'seminar2026';
+      proj.classList.remove('hidden');
+      renderResults();
+    }
+
+    function closeProjectorMode() {
+      document.getElementById('projectorView').classList.add('hidden');
+    }
+
+    function submitVote(color) {
+      if (!cardConfigs[color]) return;
+      const votePayload = {
+        color: color,
+        name: userName,
+        qId: currentQuestionId,
+        ts: Date.now()
+      };
+
+      votesData[userId] = votePayload;
+      renderResults();
+
+      broadcastRoomMessage({
+        room: currentRoom,
+        type: 'vote',
+        voterId: userId,
+        payload: votePayload
+      });
+
+      const cfg = cardConfigs[color];
+      const fullView = document.getElementById('activeCardView');
+      fullView.className = `fixed inset-0 z-30 flex flex-col items-center justify-center p-6 text-center cursor-pointer ${cfg.bgClass}`;
+      document.getElementById('activeIcon').className = `${cfg.iconClass} text-6xl text-white mb-4`;
+      document.getElementById('activeTitle').textContent = cfg.title;
+      document.getElementById('activeQuestionReminder').textContent = currentQuestionText || 'Spiker savoli';
+      fullView.classList.remove('hidden');
+      playTone(color === 'green' ? 740 : color === 'red' ? 320 : 560);
+    }
+
+    function hideFullCard() {
+      document.getElementById('activeCardView').classList.add('hidden');
+    }
+
+    function renderResults() {
+      const entries = Object.values(votesData).filter(v => v && (!currentQuestionId || !v.qId || v.qId === currentQuestionId));
+      const total = entries.length;
+      const greenCount = entries.filter(v => v.color === 'green').length;
+      const redCount = entries.filter(v => v.color === 'red').length;
+      const yellowCount = entries.filter(v => v.color === 'yellow').length;
+
+      const pct = (c) => total > 0 ? Math.round((c / total) * 100) : 0;
+      const gPct = pct(greenCount);
+      const rPct = pct(redCount);
+      const yPct = pct(yellowCount);
+
+      const setText = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+      };
+      const setWidth = (id, w) => {
+        const el = document.getElementById(id);
+        if (el) el.style.width = `${w}%`;
+      };
+
+      setText('totalVotesCount', total);
+      setText('greenStatText', `${greenCount} kishi (${gPct}%)`);
+      setText('redStatText', `${redCount} kishi (${rPct}%)`);
+      setText('yellowStatText', `${yellowCount} kishi (${yPct}%)`);
+
+      setWidth('greenBar', gPct);
+      setWidth('redBar', rPct);
+      setWidth('yellowBar', yPct);
+
+      setText('projTotalVotes', total);
+      setText('projGreenCount', `${greenCount} (${gPct}%)`);
+      setText('projRedCount', `${redCount} (${rPct}%)`);
+      setText('projYellowCount', `${yellowCount} (${yPct}%)`);
+
+      const listEl = document.getElementById('votersList');
+      if (listEl) {
+        if (entries.length === 0) {
+          listEl.innerHTML = '<span class="text-xs text-slate-500 italic">Hozircha hech kim ovoz bermadi...</span>';
+        } else {
+          listEl.innerHTML = '';
+          entries.forEach((v) => {
+            const cfg = cardConfigs[v.color] || cardConfigs.yellow;
+            const badge = document.createElement('span');
+            badge.className = `px-3 py-1.5 rounded-xl text-xs font-bold border ${cfg.badgeClass}`;
+            badge.textContent = `${v.name}: ${cfg.labelShort}`;
+            listEl.appendChild(badge);
+          });
+        }
+      }
+    }
+
+    function handleRoomMessage(rawMsg) {
+      if (!rawMsg) return;
+      let msg = rawMsg;
+      if (typeof rawMsg === 'string') {
+        try { msg = JSON.parse(rawMsg); } catch (e) { return; }
+      }
+      if (!msg || msg.room !== currentRoom) return;
+      if (msg.msgId) {
+        if (processedMessageIds.has(msg.msgId)) return;
+        processedMessageIds.add(msg.msgId);
+      }
+
+      if (msg.type === 'question') {
+        applyIncomingQuestion(msg.payload);
+      } else if (msg.type === 'vote') {
+        applyIncomingVote(msg.payload, msg.voterId);
+      } else if (msg.type === 'reset') {
+        votesData = {};
+        renderResults();
+        if (msg.question) applyIncomingQuestion(msg.question);
+      }
+    }
+
+    function syncFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(`uz_seminar_live_${currentRoom}`);
+        if (!raw) return;
+        const state = JSON.parse(raw);
+        if (state.question && state.question.text && state.question.id !== currentQuestionId) {
+          applyIncomingQuestion(state.question);
+        }
+        if (state.votes && typeof state.votes === 'object') {
+          Object.entries(state.votes).forEach(([vid, vObj]) => {
+            if (vObj && vObj.qId === currentQuestionId) applyIncomingVote(vObj, vid);
+          });
+        }
+      } catch (e) {}
+    }
+
+    async function pollNtfy() {
+      try {
+        if (!currentRoom) return;
+        const resp = await fetchT('/api/state?' + roomQ(), { cache: 'no-store' });
+        if (!resp || !resp.ok) return;
+        (await resp.json()).forEach(handleRoomMessage);
+        updateSyncBadge('Jonli aloqa faol', 'text-emerald-400');
+      } catch (e) {}
+    }
+
+    function openSse() {
+      if (sseSource) { try { sseSource.close(); } catch (e) {} }
+      sseOpen = false;
+      try {
+        const es = new EventSource('/events?' + roomQ());
+        sseSource = es;
+        es.onopen = () => { sseOpen = true; updateSyncBadge('Jonli aloqa ulangan', 'text-emerald-400'); };
+        es.onmessage = (e) => { try { handleRoomMessage(JSON.parse(e.data)); } catch (err) {} };
+        es.onerror = () => {
+          sseOpen = false;
+          updateSyncBadge('Qayta ulanmoqda...', 'text-amber-300');
+          if (es.readyState === 2) setTimeout(openSse, 3000);
+        };
+        setTimeout(() => { if (sseSource === es && !sseOpen) updateSyncBadge('Serverga ulanib bo‘lmadi', 'text-rose-400'); }, 8000);
+      } catch (e) {
+        updateSyncBadge('Faqat shu qurilmada ishlaydi', 'text-amber-300');
+      }
+    }
+
+    function connectToRoom() {
+      const codeInput = document.getElementById('roomCodeInput');
+      const rawCode = codeInput ? codeInput.value.trim() : '';
+      currentRoom = (rawCode || 'seminar2026').toLowerCase().replace(/\s+/g, '_');
+      document.getElementById('currentRoomBadge').textContent = currentRoom;
+      document.getElementById('projRoomCode').textContent = currentRoom;
+      const linkEl = document.getElementById('participantLinkText');
+      if (linkEl) linkEl.textContent = participantUrl();
+      updateSyncBadge('Ulanmoqda...', 'text-amber-300');
+
+      if (roomPollInterval) clearInterval(roomPollInterval);
+      if (ntfyPollInterval) clearInterval(ntfyPollInterval);
+      if (liveChannel) { try { liveChannel.close(); } catch (e) {} liveChannel = null; }
+      if (storageHandler) window.removeEventListener('storage', storageHandler);
+
+      try {
+        if ('BroadcastChannel' in window) {
+          liveChannel = new BroadcastChannel('uz_seminar_channel_' + currentRoom);
+          liveChannel.onmessage = (event) => handleRoomMessage(event.data);
+        }
+      } catch (e) {}
+
+      const storageKey = `uz_seminar_live_${currentRoom}`;
+      storageHandler = (e) => { if (e.key === storageKey) syncFromLocalStorage(); };
+      window.addEventListener('storage', storageHandler);
+      syncFromLocalStorage();
+      roomPollInterval = setInterval(syncFromLocalStorage, 1000);
+
+      openSse();
+      // SSE uzilib qolsa, kamdan-kam so'rov bilan zaxira (ntfy chegarasiga urilmaslik uchun)
+      ntfyPollInterval = setInterval(() => { if (!sseOpen) pollNtfy(); }, 4000);
+    }
+
+    async function runDiagnostics() {
+      const out = [];
+      const t0 = Date.now();
+      try {
+        const r = await fetchT('/api/ping', { cache: 'no-store' }, 5000);
+        out.push('Server javobi: ' + r.status + ' (' + (Date.now() - t0) + ' ms)');
+      } catch (e) { out.push('Serverga ulanib bo‘lmadi: ' + e.message); }
+      out.push('Xona: ' + currentRoom + ' | jonli ulanish: ' + (sseOpen ? 'ulangan' : 'ulanmagan'));
+      alert(out.join('\n'));
+    }
+
+    // Sahifa ochilganda boshlang'ich tayyorlash
+    window.addEventListener('DOMContentLoaded', () => {
+      renderPresetList();
+      const badgeEl = document.getElementById('syncStatusBadge');
+      if (badgeEl) { badgeEl.style.cursor = 'pointer'; badgeEl.title = 'Bosib, ulanishni tekshiring'; badgeEl.addEventListener('click', runDiagnostics); }
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const paramRoom = params.get('room');
+        const paramRole = params.get('role');
+        if (paramRoom) {
+          const roomInput = document.getElementById('roomCodeInput');
+          if (roomInput) roomInput.value = paramRoom;
+          currentRoom = paramRoom.toLowerCase().replace(/\s+/g, '_');
+          document.getElementById('currentRoomBadge').textContent = currentRoom;
+        }
+        if (paramRole === 'participant') {
+          enterAsParticipant();
+        } else if (paramRole === 'moderator') {
+          enterAsModerator();
+        }
+      } catch (e) {}
+    });
+  </script>
+</body>
+</html>
